@@ -38,8 +38,11 @@ def get_num_posts():
     return num_posts
 
 # Logging message
-def article_logging_msg(post_date, post_title):
-    logging.info(f'{post_date.replace(" ", ", ")} - Article "{post_title}" retrieved!')
+def logging_msg(message):
+    #Get current datetime
+    current_datetime = datetime.now()
+    formatted_datetime = current_datetime.strftime('%d/%m/%Y %H:%M:%S')
+    logging.info(f'{formatted_datetime.replace(" ", ", ")} - {message}')
 
 # Define the Flask application
 app = Flask(__name__)
@@ -61,18 +64,18 @@ def post(post_id):
     if post is None:
         return render_template('404.html'), 404
     else:
-        #Get article datetime
-        #post_datetime = post['created']
+        #Get log msg
         post_title = post['title']
-        #Get current datetime
-        current_datetime = datetime.now()
-        formatted_datetime = current_datetime.strftime('%d/%m/%Y %H:%M:%S')
-        article_logging_msg(str(formatted_datetime), post_title)
+        log_msg = f'Article "{post_title}" retrieved!'
+        logging_msg(str(log_msg))
         return render_template('post.html', post=post)
 
 # Define the About Us page
 @app.route('/about')
 def about():
+    #Get log msg
+    log_msg = f'About Us retrieved!'
+    logging_msg(str(log_msg))
     return render_template('about.html')
 
 # Define the post creation functionality 
@@ -90,7 +93,9 @@ def create():
                          (title, content))
             connection.commit()
             connection.close()
-
+            #Get log msg
+            log_msg = f'New post "{title}" was created!'
+            logging_msg(log_msg)
             return redirect(url_for('index'))
 
     return render_template('create.html')
@@ -117,7 +122,7 @@ def metrics():
 # Configure logging
 def log_init():
     logging.basicConfig(
-        level=logging.INFO,  # Set the log level
+        level=logging.DEBUG,  # Set the log level
         format='%(levelname)s:%(name)s:%(message)s',  # Set the log format
         handlers=[
             logging.FileHandler("app.log"),  # Log to a file
@@ -125,10 +130,10 @@ def log_init():
         ]
     )
     # Create a logger
-    logger = logging.getLogger('app')
+    logger = logging.getLogger(__name__)
     return logger
 
 # start the application on port 3111
 if __name__ == "__main__":
    log_init()
-   app.run(host='0.0.0.0', port='3111', debug=False)
+   app.run(host='0.0.0.0', port='3111', debug=True)
