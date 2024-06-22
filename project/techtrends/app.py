@@ -2,6 +2,8 @@ import sqlite3
 
 from flask import Flask, jsonify, json, render_template, request, url_for, redirect, flash
 from werkzeug.exceptions import abort
+import logging
+from datetime import datetime
 
 # Function to get a database connection.
 # This function connects to database with the name `database.db`
@@ -17,6 +19,27 @@ def get_post(post_id):
                         (post_id,)).fetchone()
     connection.close()
     return post
+
+# Function to get number of db connection
+def get_db_connections():
+    connection = get_db_connection()
+    #cursor = connection.cursor()
+    connection_count  = connection.execute('SELECT * FROM posts').fetchone()[0]
+    #num_posts = len(posts)
+    connection.close()
+    return connection_count
+
+# Function to get number of posts
+def get_num_posts():
+    connection = get_db_connection()
+    posts = connection.execute('SELECT * FROM posts').fetchall()
+    num_posts = len(posts)
+    connection.close()
+    return num_posts
+
+# Logging message
+def article_logging_msg(post_date, post_title):
+    logging.info(f'{post_date.replace(" ", ", ")} - Article "{post_title}" retrieved!')
 
 # Define the Flask application
 app = Flask(__name__)
@@ -36,9 +59,16 @@ def index():
 def post(post_id):
     post = get_post(post_id)
     if post is None:
-      return render_template('404.html'), 404
+        return render_template('404.html'), 404
     else:
-      return render_template('post.html', post=post)
+        #Get article datetime
+        #post_datetime = post['created']
+        post_title = post['title']
+        #Get current datetime
+        current_datetime = datetime.now()
+        formatted_datetime = current_datetime.strftime('%d/%m/%Y %H:%M:%S')
+        article_logging_msg(str(formatted_datetime), post_title)
+        return render_template('post.html', post=post)
 
 # Define the About Us page
 @app.route('/about')
@@ -65,6 +95,40 @@ def create():
 
     return render_template('create.html')
 
+# Define the healthcheck endpoint
+@app.route('/healthz', methods=('GET', 'POST'))
+def healthz():
+    response = {
+        'result': 'OK - healthy'
+    }
+    return jsonify(response), 200
+
+# Define the metrics endpoint
+@app.route('/metrics', methods=('GET', 'POST'))
+def metrics():
+    db_connection_count = get_db_connections()
+    posts_count = get_num_posts()
+    response = {
+        'db_connection_count': db_connection_count,
+        'post_count': posts_count
+    }
+    return jsonify(response), 200
+
+# Configure logging
+def log_init():
+    logging.basicConfig(
+        level=logging.INFO,  # Set the log level
+        format='%(levelname)s:%(name)s:%(message)s',  # Set the log format
+        handlers=[
+            logging.FileHandler("app.log"),  # Log to a file
+            logging.StreamHandler()  # Log to console
+        ]
+    )
+    # Create a logger
+    logger = logging.getLogger('app')
+    return logger
+
 # start the application on port 3111
 if __name__ == "__main__":
-   app.run(host='0.0.0.0', port='3111')
+   log_init()
+   app.run(host='0.0.0.0', port='3111', debug=False)
