@@ -1,7 +1,9 @@
 apiVersion: v1
-name: techtrends
-description: Techtrends deployment
-keywords: techtrends
+name: techtrends-staging
+description: Techtrends staging deployment
+keywords: 
+- techtrends
+- staging
 version: 1.0.0
 maintainers:
 - name: nghiale 
