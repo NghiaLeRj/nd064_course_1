@@ -1,0 +1,8 @@
+apiVersion: v1
+name: techtrends
+description: Techtrends deployment
+keywords: techtrends
+version: 1.0.0
+maintainers:
+- name: nghiale 
+  email: nghia.le.rj@renesas.com
