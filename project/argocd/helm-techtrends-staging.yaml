@@ -5,13 +5,13 @@ metadata:
   namespace: argocd
 spec:
   destination:
-    namespace: default
+    namespace: staging
     server: https://kubernetes.default.svc
   project: default
   source:
     helm:
       valueFiles:
       - values-staging.yaml
-    path: project/helm
-    repoURL: https://github.com/udacity/nd064_course_1
+    path: project/helm/staging
+    repoURL: https://github.com/NghiaLeRj/nd064_course_1
     targetRevision: HEAD
